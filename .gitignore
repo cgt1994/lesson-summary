@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Environment variables (contains secrets!)
+.env
+
+# Google OAuth credentials and tokens (NEVER commit these!)
+credentials.json
+token.json
+
+# Student database (contains email addresses - privacy)
+students.json
+
+# Transcripts (may contain sensitive lesson content)
+transcripts/
+!transcripts/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
