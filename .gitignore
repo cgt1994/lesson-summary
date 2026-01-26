@@ -8,6 +8,8 @@ venv/
 env/
 ENV/
 
+videos/
+
 # Environment variables (contains secrets!)
 .env
 
