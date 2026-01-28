@@ -1,7 +1,7 @@
 ---
 name: lesson-summary
 description: Complete workflow to process lesson videos - converts MP4 to MP3, transcribes audio to text, and generates email summary. Automatically chains convert-to-mp3, transcribe-audio, and send-email skills.
-argument-hint: [video-file] [--model MODEL] [--type TYPE] [--to RECIPIENT] [--teacher TEACHER]
+argument-hint: [video-file] [--model MODEL] [--to RECIPIENT] [--teacher TEACHER]
 disable-model-invocation: true
 allowed-tools: Bash(ffmpeg:*,python:*,open:*)
 ---
@@ -21,23 +21,16 @@ All required tools should already be installed:
 
 Basic usage - process video and generate lesson email:
 ```bash
-python scripts/lesson_summary.py "$1" --to "${2:-student}" --teacher "${3:-Peggy}"
-```
-
-With all options:
-```bash
-python scripts/lesson_summary.py "$1" --model ${2:-tiny} --type ${3:-lesson} --to "${4:-student}" --teacher "${5:-Peggy}" --subject "${6}"
+python scripts/lesson_summary.py "$1" --to "${2:-student}" --teacher "${3:-Peggy}" --model ${4:-medium}
 ```
 
 ## Parameters
 
 - `$1` - Input MP4 video file path (required)
-- `--model` - Whisper model: tiny, base, small, medium, large (default: tiny)
-- `--type` - Email type: lesson, summary, followup, report (default: lesson)
 - `--to` - Recipient name/description (default: student)
 - `--teacher` - Teacher name for lesson type (default: Peggy)
-- `--subject` - Custom email subject (auto-generated if not specified)
-- `--keep-files` - Keep intermediate files (mp3, txt) (default: true)
+- `--model` - Whisper model: tiny, base, small, medium, large, large-v3 (default: medium)
+- `--type` - Email type: lesson, summary, followup, report (default: lesson)
 
 ## Workflow Steps
 
