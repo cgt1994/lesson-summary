@@ -23,27 +23,35 @@ def run_command(cmd, description, timeout=600000):
     start_time = time.time()
 
     try:
-        result = subprocess.run(
+        # Stream output directly to stdout
+        process = subprocess.Popen(
             cmd,
             shell=True,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            timeout=timeout/1000
+            bufsize=1,
+            universal_newlines=True
         )
+
+        # Print output in real-time
+        for line in process.stdout:
+            print(line, end='', flush=True)
+
+        process.wait(timeout=timeout/1000)
+        returncode = process.returncode
 
         elapsed = time.time() - start_time
 
-        if result.returncode == 0:
-            print(result.stdout)
-            if result.stderr:
-                print(result.stderr)
+        if returncode == 0:
             print(f"\n✅ Completed in {elapsed:.1f} seconds")
             return True, elapsed
         else:
-            print(f"❌ Error: {result.stderr}")
+            print(f"\n❌ Error: Command failed with return code {returncode}")
             return False, elapsed
 
     except subprocess.TimeoutExpired:
+        process.kill()
         print(f"❌ Timeout after {timeout/1000} seconds")
         return False, timeout/1000
     except Exception as e:
@@ -138,7 +146,7 @@ import time
 
 print('⏳ 加载模型...')
 start_time = time.time()
-model = WhisperModel('{args.model}', device='cpu', compute_type='int8')
+model = WhisperModel('{args.model}', device='cpu', compute_type='float32')
 load_time = time.time() - start_time
 print(f'✓ 模型加载完成 ({{load_time:.2f}}秒)')
 

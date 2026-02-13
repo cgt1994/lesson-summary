@@ -21,7 +21,7 @@ All required tools should already be installed:
 
 Basic usage - process video and generate lesson email:
 ```bash
-python scripts/lesson_summary.py "$1" --to "${2:-student}" --teacher "${3:-Peggy}" --model ${4:-medium}
+python scripts/lesson_summary.py "$1" --to "${2:-student}" --teacher "${3:-Peggy}" --model ${4:-base}
 ```
 
 ## Parameters
@@ -29,7 +29,7 @@ python scripts/lesson_summary.py "$1" --to "${2:-student}" --teacher "${3:-Peggy
 - `$1` - Input MP4 video file path (required)
 - `--to` - Recipient name/description (default: student)
 - `--teacher` - Teacher name for lesson type (default: Peggy)
-- `--model` - Whisper model: tiny, base, small, medium, large, large-v3 (default: medium)
+- `--model` - Whisper model: tiny, base, small, medium, large, large-v3 (default: base)
 - `--type` - Email type: lesson, summary, followup, report (default: lesson)
 
 ## Workflow Steps
@@ -129,10 +129,10 @@ For a typical 53-minute lesson video:
 
 Choose transcription model based on needs:
 
-- **tiny**: Fastest, good for quick drafts (recommended for first pass)
-- **base**: Good balance of speed and accuracy
-- **small**: Better accuracy for important lessons
-- **medium**: High accuracy, slower processing
+- **tiny**: Fastest, good for quick drafts (~1-2 min for 53-min video)
+- **base**: Good balance of speed and accuracy (~5 min) **[DEFAULT]**
+- **small**: Better accuracy for important lessons (~10-15 min)
+- **medium**: High accuracy, slower processing (~50+ min)
 - **large**: Best quality, slowest (not recommended unless critical)
 
 ## Email Types

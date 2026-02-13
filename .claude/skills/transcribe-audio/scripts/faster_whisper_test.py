@@ -31,10 +31,10 @@ def transcribe_audio(audio_path, model_size="base", language=None, output_dir=No
     print(f"🌐 语言: {language or '自动检测'}")
     print()
 
-    # Initialize model (runs on CPU with int8 for faster performance)
+    # Initialize model (runs on CPU with float32 for optimal Apple Silicon performance)
     print("⏳ 加载模型...")
     start_load = time.time()
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
+    model = WhisperModel(model_size, device="cpu", compute_type="float32")
     load_time = time.time() - start_load
     print(f"✓ 模型加载完成 ({load_time:.2f}秒)")
     print()
