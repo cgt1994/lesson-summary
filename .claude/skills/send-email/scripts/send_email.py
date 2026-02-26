@@ -15,6 +15,10 @@ import urllib.parse
 import re
 import tempfile
 import threading
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def detect_language(text):
     """Detect if text is primarily Chinese or English"""
@@ -151,83 +155,105 @@ def generate_report_email(content, to_recipient, language, subject=None):
 
     return email
 
+def load_style_guide():
+    """Load the Master Email Style Guide"""
+    # Try to find the style guide in the project
+    current_dir = Path(__file__).parent
+    possible_paths = [
+        current_dir.parent.parent.parent.parent / "templates" / "Master_EmailStyle_Guide.md",
+        current_dir.parent.parent.parent / "templates" / "Master_EmailStyle_Guide.md",
+        Path.cwd() / "templates" / "Master_EmailStyle_Guide.md",
+    ]
+
+    for path in possible_paths:
+        if path.exists():
+            with open(path, 'r', encoding='utf-8') as f:
+                return f.read()
+
+    # Return a basic style guide if not found
+    return """=== TEACHING ASSISTANT STYLE GUIDE ===
+Follow the Narrative + Highlights method.
+Use Traditional Chinese for narrative and English for terms.
+Format: 📚 今天學了什麼？
+1. Topic (Topic Name): Narrative
+✅ Highlight 1
+✅ Highlight 2
+🌟 給你的小鼓勵
+🏡 Homework
+"""
+
 def generate_lesson_email(content, to_recipient, language, subject=None, teacher_name="Peggy"):
-    """Generate a teaching lesson summary email following Peggy's style guide using OpenAI-compatible API"""
+    """Generate a teaching lesson summary email following Peggy's style guide using Google Gemini"""
 
     try:
-        import os
-        from openai import OpenAI
+        # Load style guide
+        style_guide = load_style_guide()
 
-        # Use Claude Code's local API endpoint
-        base_url = os.environ.get('ANTHROPIC_BASE_URL', 'http://localhost:4141')
-        api_key = os.environ.get('ANTHROPIC_AUTH_TOKEN', 'dummy-key')
-
-        client = OpenAI(
-            base_url=base_url,
-            api_key=api_key
-        )
+        # Check for API keys
+        google_api_key = os.getenv('GOOGLE_API_KEY')
+        anthropic_api_key = os.getenv('ANTHROPIC_API_KEY')
+        ai_model = os.getenv('AI_MODEL', 'gemini-1.5-pro')
 
         student_name = to_recipient if to_recipient != 'recipient' else '同學'
 
-        # Create prompt for the model to analyze the lesson transcript
-        prompt = f"""You are helping to create a lesson summary email for an English teaching session. The teacher is {teacher_name} and the student is {student_name}.
+        # Create prompt for the model
+        prompt = f"""You are Peggy's Executive Teaching Assistant creating a lesson summary email.
 
-Analyze the following lesson transcript and create a summary email following this EXACT format:
+STYLE GUIDE:
+{style_guide}
 
-Hi {student_name},
+CRITICAL RULES:
+1. Tell the STORY of the lesson with specific examples
+2. NO laundry lists - every item needs context
+3. Use "we practiced..." not "the student learned..."
+4. Bilingual: Chinese narrative + English terms
+5. Format: Topic (English): 描述活動
+   ✅ Specific phrase/correction from THIS lesson
+   ✅ Another specific example
 
-📚 今天學了什麼？
+STUDENT: {student_name}
+TEACHER: {teacher_name}
 
-1.[Chinese Topic Name] ([English Topic Name])：[Description of what was covered]
-✅ [Specific skill 1]：[Details and examples from the lesson]
-✅ [Specific skill 2]：[Details and examples from the lesson]
+TRANSCRIPT:
+{content[:8000]}
 
-2.[Chinese Topic Name] ([English Topic Name])：[Description of what was covered]
-✅ [Specific skill 1]：[Details and examples from the lesson]
-✅ [Specific skill 2]：[Details and examples from the lesson]
+Generate the lesson email following Peggy's EXACT style and structure:"""
 
-🌟 給你的小鼓勵
-[Personalized encouragement based on the student's actual performance in this lesson]
+        # Try to use configured AI model
+        if ai_model.startswith("gemini") and google_api_key:
+            print("🤖 Using Google Gemini API...")
+            import google.generativeai as genai
+            genai.configure(api_key=google_api_key)
+            model = genai.GenerativeModel(ai_model)
+            response = model.generate_content(prompt)
+            email_content = response.text
 
-🏡Homework: "[Homework title based on lesson content]"
-([Brief description of the homework])
+        elif ai_model.startswith("claude") and anthropic_api_key:
+            print("🤖 Using Anthropic Claude API...")
+            from anthropic import Anthropic
+            client = Anthropic(api_key=anthropic_api_key)
+            message = client.messages.create(
+                model=ai_model,
+                max_tokens=2000,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            email_content = message.content[0].text
 
-附件是今天課程PPT，有問題可以隨時找我
-有空也可以留一下課程評價喔～
+        else:
+            raise Exception("No valid API key found. Please set GOOGLE_API_KEY or ANTHROPIC_API_KEY in .env")
 
-Best regards,
-{teacher_name}
+        # Clean up the response (remove any markdown code blocks)
+        email_content = re.sub(r'^```[\w]*\n', '', email_content)
+        email_content = re.sub(r'\n```$', '', email_content)
+        email_content = email_content.strip()
 
-IMPORTANT INSTRUCTIONS:
-1. Identify 2-3 main topics that were actually discussed in the lesson
-2. For each topic, extract specific vocabulary, phrases, or grammar points that were taught
-3. Include actual examples from the transcript (specific words, phrases, or corrections made)
-4. The encouragement should mention specific things the student did well in THIS lesson
-5. Create homework that relates to what was actually learned
-6. Use a friendly, encouraging tone matching Peggy's teaching style
-7. Mix Chinese and English naturally as shown in the format
-
-Transcript:
-{content}
-
-Generate the lesson summary email now:"""
-
-        # Call API with available model
-        response = client.chat.completions.create(
-            model="gemini-3-pro-preview",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000
-        )
-
-        email_content = response.choices[0].message.content
         return email_content
 
     except Exception as e:
         print(f"⚠️  Error calling API: {e}")
-        print("Falling back to basic summary...")
+        print(f"    Make sure you have set GOOGLE_API_KEY or ANTHROPIC_API_KEY in .env")
+        print("    Falling back to basic summary...")
         return generate_basic_lesson_summary(content, to_recipient, teacher_name)
 
 
@@ -235,26 +261,22 @@ def generate_basic_lesson_summary(content, to_recipient, teacher_name="Peggy"):
     """Generate a basic lesson summary when API is not available"""
     student_name = to_recipient if to_recipient != 'recipient' else '同學'
 
-    # Extract some basic info from transcript
-    lines = [line.strip() for line in content.split('\n') if line.strip() and len(line.strip()) > 20]
-    preview = ' '.join(lines[:50])  # First 50 meaningful lines
-
     email_content = f"""Hi {student_name},
 
 📚 今天學了什麼？
 
-1.英語會話練習 (English Conversation Practice)：今天我們進行了豐富的英語對話練習，涵蓋多個日常主題。
-✅ 口說流暢度：練習自然地表達想法和分享經驗
-✅ 詞彙運用：學習在對話中運用適當的詞彙和片語
+**1. 英語會話練習 (English Conversation Practice)**：今天我們進行了豐富的英語對話練習，涵蓋多個日常主題。
+✅ **口說流暢度**：練習自然地表達想法和分享經驗
+✅ **詞彙運用**：學習在對話中運用適當的詞彙和片語
 
-2.文法與表達技巧 (Grammar & Expression Skills)：針對對話中的表達進行調整和改進。
-✅ 句型練習：練習更自然和準確的英文句型
-✅ 發音修正：針對特定詞彙進行發音練習
+**2. 文法與表達技巧 (Grammar & Expression Skills)**：針對對話中的表達進行調整和改進。
+✅ **句型練習**：練習更自然和準確的英文句型
+✅ **發音修正**：針對特定詞彙進行發音練習
 
-🌟 給你的小鼓勵
+🌟 **給你的小鼓勵**
 今天的課程表現很好！你在對話中展現了積極的學習態度，也勇於嘗試用英文表達各種想法。繼續保持這樣的練習，你的英文會越來越進步～
 
-🏡Homework: "Review and Practice"
+🏡**Homework: "Review and Practice"**
 (複習今天學過的內容，並嘗試在日常生活中使用)
 
 附件是今天課程PPT，有問題可以隨時找我
@@ -298,8 +320,6 @@ def generate_email(input_file, email_type='summary', to_recipient='recipient',
         email = generate_followup_email(content, to_recipient, language, subject)
     elif email_type == 'report':
         email = generate_report_email(content, to_recipient, language, subject)
-    elif email_type == 'announcement':
-        email = generate_announcement_email(content, to_recipient, language, subject)
     elif email_type == 'lesson':
         email = generate_lesson_email(content, to_recipient, language, subject, teacher_name)
         if email is None:
@@ -342,7 +362,7 @@ def open_in_mail_app(email_content, subject, recipient_email=""):
 
     try:
         # Escape content for AppleScript (escape quotes and backslashes)
-        escaped_content = email_content.replace('\\', '\\\\').replace('"', '\\"')
+        escaped_content = email_content.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
         escaped_subject = subject_line.replace('\\', '\\\\').replace('"', '\\"')
 
         # Create AppleScript to make a new draft in Mail.app
@@ -405,7 +425,7 @@ def main():
     )
 
     parser.add_argument('input_file', help='Input text file')
-    parser.add_argument('--type', choices=['summary', 'followup', 'report', 'announcement', 'lesson'],
+    parser.add_argument('--type', choices=['summary', 'followup', 'report', 'lesson'],
                        default='summary', help='Email type (default: summary)')
     parser.add_argument('--to', dest='to_recipient', default='recipient',
                        help='Recipient description (default: recipient)')
