@@ -1,9 +1,8 @@
 ---
 name: transcribe-audio
 description: Convert audio files to text using faster-whisper. Supports MP3, MP4, WAV, M4A and other formats. Optimized for speed with multiple model options.
-argument-hint: [input-file] [--model MODEL] [--language LANG] [--output-dir DIR]
+argument-hint: "input-file --model MODEL --language LANG --output-dir DIR"
 disable-model-invocation: true
-allowed-tools: Bash(python:*)
 ---
 
 # Transcribe Audio to Text
