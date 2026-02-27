@@ -24,6 +24,9 @@ students.json
 transcripts/
 !transcripts/.gitkeep
 
+# Temporary files (audio, transcripts, emails)
+tmp/
+
 # IDE
 .vscode/
 .idea/
