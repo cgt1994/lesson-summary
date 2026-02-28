@@ -243,9 +243,11 @@ Generate the lesson email following Peggy's EXACT style and structure:"""
         else:
             raise Exception("No valid API key found. Please set GOOGLE_API_KEY or ANTHROPIC_API_KEY in .env")
 
-        # Clean up the response (remove any markdown code blocks)
+        # Clean up the response
         email_content = re.sub(r'^```[\w]*\n', '', email_content)
         email_content = re.sub(r'\n```$', '', email_content)
+        # Remove bold markdown (**text**) but keep the text
+        email_content = email_content.replace('**', '')
         email_content = email_content.strip()
 
         return email_content
@@ -265,18 +267,18 @@ def generate_basic_lesson_summary(content, to_recipient, teacher_name="Peggy"):
 
 📚 今天學了什麼？
 
-**1. 英語會話練習 (English Conversation Practice)**：今天我們進行了豐富的英語對話練習，涵蓋多個日常主題。
-✅ **口說流暢度**：練習自然地表達想法和分享經驗
-✅ **詞彙運用**：學習在對話中運用適當的詞彙和片語
+1. 英語會話練習 (English Conversation Practice)：今天我們進行了豐富的英語對話練習，涵蓋多個日常主題。
+✅ 口說流暢度：練習自然地表達想法和分享經驗
+✅ 詞彙運用：學習在對話中運用適當的詞彙和片語
 
-**2. 文法與表達技巧 (Grammar & Expression Skills)**：針對對話中的表達進行調整和改進。
-✅ **句型練習**：練習更自然和準確的英文句型
-✅ **發音修正**：針對特定詞彙進行發音練習
+2. 文法與表達技巧 (Grammar & Expression Skills)：針對對話中的表達進行調整和改進。
+✅ 句型練習：練習更自然和準確的英文句型
+✅ 發音修正：針對特定詞彙進行發音練習
 
-🌟 **給你的小鼓勵**
+🌟 給你的小鼓勵
 今天的課程表現很好！你在對話中展現了積極的學習態度，也勇於嘗試用英文表達各種想法。繼續保持這樣的練習，你的英文會越來越進步～
 
-🏡**Homework: "Review and Practice"**
+🏡Homework: "Review and Practice"
 (複習今天學過的內容，並嘗試在日常生活中使用)
 
 附件是今天課程PPT，有問題可以隨時找我
@@ -324,6 +326,9 @@ def generate_email(input_file, email_type='summary', to_recipient='recipient',
         email = generate_lesson_email(content, to_recipient, language, subject, teacher_name)
         if email is None:
             return None
+    elif email_type == 'manual':
+         # Just use the file content as is, but maybe fix newlines
+         email = content
     else:
         print(f"❌ Unknown email type: {email_type}")
         return None
@@ -350,7 +355,7 @@ def generate_email(input_file, email_type='summary', to_recipient='recipient',
     print("=" * 60)
 
     # Open in Mail app
-    open_in_mail_app(email, subject or "Email from Transcript")
+    open_in_mail_app(email, subject or "AT Lesson with Peggy")
 
     return str(output_file)
 
@@ -425,7 +430,7 @@ def main():
     )
 
     parser.add_argument('input_file', help='Input text file')
-    parser.add_argument('--type', choices=['summary', 'followup', 'report', 'lesson'],
+    parser.add_argument('--type', choices=['summary', 'followup', 'report', 'lesson', 'manual'],
                        default='summary', help='Email type (default: summary)')
     parser.add_argument('--to', dest='to_recipient', default='recipient',
                        help='Recipient description (default: recipient)')
