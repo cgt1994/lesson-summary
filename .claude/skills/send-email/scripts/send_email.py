@@ -260,7 +260,7 @@ Generate the lesson email following Peggy's EXACT style and structure:"""
         print(f"⚠️  Error calling API: {e}")
         print(f"    Make sure you have set GOOGLE_API_KEY or ANTHROPIC_API_KEY in .env")
         print("    You can also manually generate the email using the /lesson command:")
-        print(f"    /lesson {input_file}")
+        print(f"    /lesson <transcript_file>")
         # Return None to indicate failure, so the calling script knows.
         return None
 
