@@ -168,7 +168,7 @@ export default function App() {
               <label className="text-sm text-gray-600" style={{ fontWeight: 500 }}>Student Name</label>
               <input
                 type="text"
-                placeholder="e.g. Sarah Johnson"
+                placeholder="e.g. Emily Chen"
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
@@ -178,7 +178,7 @@ export default function App() {
               <label className="text-sm text-gray-600" style={{ fontWeight: 500 }}>Student Email</label>
               <input
                 type="email"
-                placeholder="e.g. parent@example.com"
+                placeholder="e.g. student@example.com"
                 value={studentEmail}
                 onChange={(e) => setStudentEmail(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
@@ -228,7 +228,7 @@ export default function App() {
         <div className="flex-1 flex flex-col gap-4 mt-4 lg:mt-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-gray-900" style={{ fontWeight: 700 }}>Parent Email Draft</h2>
+              <h2 className="text-gray-900" style={{ fontWeight: 700 }}>Email Draft</h2>
               <p className="text-gray-500 text-sm">Review and edit before sending.</p>
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs text-green-700" style={{ fontWeight: 500 }}>
@@ -249,7 +249,7 @@ export default function App() {
               <div className="flex-1 flex items-center gap-2 bg-white rounded-lg border border-gray-200 px-3 py-1.5">
                 <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                 <span className="text-xs text-gray-400 truncate">
-                  To: {studentEmail || (studentName ? `${studentName.split(" ")[0].toLowerCase()}.parents@email.com` : "parents@email.com")}
+                  To: {studentEmail || (studentName ? `${studentName.split(" ")[0].toLowerCase()}@email.com` : "student@email.com")}
                 </span>
               </div>
               <div className="flex-1 hidden sm:flex items-center gap-2 bg-white rounded-lg border border-gray-200 px-3 py-1.5">
