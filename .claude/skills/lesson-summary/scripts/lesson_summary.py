@@ -60,19 +60,18 @@ def run_command(cmd, description, timeout=600000):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Complete lesson summary workflow: MP4 → MP3 → Text → Email',
+        description='Complete lesson summary workflow: MP4 → MP3 → Text',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     parser.add_argument('video_file', help='Input MP4 video file')
     parser.add_argument('--model', choices=['tiny', 'base', 'small', 'medium', 'large', 'large-v3'],
                        default='base', help='Whisper model for transcription (default: base)')
-    parser.add_argument('--to', dest='recipient', default='student',
-                       help='Email recipient name (default: student)')
-    parser.add_argument('--teacher', default='Peggy',
-                       help='Teacher name for lesson type (default: Peggy)')
+    # Legacy arguments kept for compatibility but ignored
+    parser.add_argument('--to', dest='recipient', default='student', help='Ignored')
+    parser.add_argument('--teacher', default='Peggy', help='Ignored')
     parser.add_argument('--type', choices=['lesson', 'summary', 'followup', 'report'],
-                       default='lesson', help='Email type (default: lesson)')
+                       default='lesson', help='Ignored')
 
     args = parser.parse_args()
 
@@ -102,8 +101,6 @@ def main():
     print("="*60)
     print(f"Input: {video_path.name} ({video_size:.1f} MB)")
     print(f"Model: {args.model}")
-    print(f"Recipient: {args.recipient}")
-    print(f"Teacher: {args.teacher}")
     print("="*60)
 
     total_start = time.time()
@@ -115,7 +112,7 @@ def main():
 
     try:
         # Step 1: Convert MP4 to MP3 (temporary)
-        print("\n📹 STEP 1/3: Converting video to audio...")
+        print("\n📹 STEP 1/2: Converting video to audio...")
         convert_cmd = f'ffmpeg -i "{video_path}" -vn -ar 44100 -ac 2 -b:a 192k "{temp_mp3_path}" -y'
         success, convert_time = run_command(convert_cmd, "Converting MP4 to MP3", timeout=600000)
 
@@ -133,7 +130,7 @@ def main():
         print(f"✓ Audio extracted successfully")
 
         # Step 2: Transcribe audio to text
-        print("\n🎙️ STEP 2/3: Transcribing audio to text...")
+        print("\n🎙️ STEP 2/2: Transcribing audio to text...")
 
         # Use faster-whisper directly with Python
         transcribe_cmd = f'''python3 -c "
@@ -182,33 +179,13 @@ print(f'文件大小: {{len(transcript)}} 字符')
             temp_mp3_path.unlink()
             print(f"🗑️ Cleaned up temporary audio file")
 
-    # Step 3: Generate email
-    print("\n📧 STEP 3/3: Generating email...")
-
-    # Define send_email.py path
-    send_email_script = project_root / ".claude" / "skills" / "send-email" / "scripts" / "send_email.py"
-
-    if send_email_script.exists():
-        print(f"\n🚀 Launching send_email.py...")
-        email_cmd = f'python3 "{send_email_script}" "{txt_file}" --type {args.type} --to "{args.recipient}" --teacher "{args.teacher}"'
-
-        success, email_time = run_command(email_cmd, "Generating email with AI", timeout=300000)
-
-        if success:
-            step_times.append(("Generate email", email_time))
-        else:
-            print("⚠️ Email generation failed, but transcript is saved.")
-    else:
-        print(f"⚠️ Could not find send_email.py at {send_email_script}")
-        print("Please run email generation manually.")
-
     # Calculate total time
     total_time = time.time() - total_start
     txt_size = txt_file.stat().st_size / 1024  # KB
 
     # Print summary
     print("\n" + "="*60)
-    print("✅ WORKFLOW COMPLETE!")
+    print("✅ TRANSCRIPTION COMPLETE!")
     print("="*60)
 
     print("\nFiles created:")
