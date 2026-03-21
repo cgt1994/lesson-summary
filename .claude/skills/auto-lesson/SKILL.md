@@ -33,13 +33,15 @@ You are an expert orchestrator for lesson workflows.
         /extract-insights <transcript_file>
         ```
     *   Locate the resulting JSON file (e.g., `tmp/{{$1|basename}}_insights.json`).
-    *   Read and validate the insights JSON.
+    *   Read the insights JSON.
 
-3.  **Generate Email**:
-    *   Using the transcript AND the extracted insights JSON, generate a comprehensive lesson email following Peggy's bilingual teaching style.
-    *   **Recipient**: `{{to|default:"Student"}}`
-    *   **Subject**: "Lesson Recap"
-    *   Save the email to a file (e.g., `tmp/{{$1|basename}}_email.txt`).
+3.  **Generate Email (JSON Only)**:
+    *   Call the lesson email generator skill using **ONLY** the insights JSON file:
+        ```bash
+        /lesson <insights_json_file> --to "{{to|default:"Student"}}"
+        ```
+    *   **CRITICAL:** Do NOT pass the transcript file (`.txt`) to the `/lesson` command. The email must be generated purely from the JSON insights to save tokens.
+    *   Locate the generated email file (e.g., `tmp/{{$1|basename}}_email.txt`).
 
 4.  **Open Email**:
     *   Open the generated email in Gmail:

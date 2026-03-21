@@ -28,7 +28,12 @@ You are an expert teaching assistant.
 
 2.  **Read the transcript**: Find the transcript file path from the previous step's output and read it.
 
-3.  **Generate a lesson email**: Using the transcript content, generate a professional lesson email following Peggy's bilingual teaching style (Traditional Chinese narrative + English terms).
+3.  **Generate a lesson email**:
+    *   Read the email style guide at `templates/Master_EmailStyle_Guide.md`.
+    *   Using the transcript content and the style guide, generate a professional lesson email.
+    *   **Strictly follow** the "EMAIL TEMPLATE" section in the style guide:
+        *   Use **Traditional Chinese** for the main narrative.
+        *   Use the specific headers (e.g., "📚 今天學了什麼？", "🌟 給妳的小鼓勵").
     *   **Recipient**: `{{to|default:"Student"}}`
     *   **Subject**: "Lesson Recap"
 
