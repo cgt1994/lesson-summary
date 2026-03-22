@@ -25,10 +25,18 @@ The "brain" of the operation is the `/lesson` skill, which is a prompt-engineere
     *   **Persona**: "Peggy's Executive Teaching Assistant."
     *   **Tone**: Encouraging, specific, bilingual (Traditional Chinese narrative + English terms).
     *   **Structure**: "Narrative + Highlights" method.
-2.  **Analysis**: Reads the raw transcript text.
+2.  **Analysis (Forked Context)**: Reads the raw transcript text in a separate, isolated context window. This prevents the large transcript from polluting the main session history.
 3.  **Generation**: Produces the final email body.
 
-### 3. The Delivery Mechanism (`/send-email`)
+### 3. The Orchestrator (`/auto-lesson`)
+
+This high-level skill chains the pipeline together into a single command:
+
+1.  **Step 1**: Calls `/lesson-summary` to generate the transcript locally.
+2.  **Step 2**: Immediately passes the transcript to `/lesson` for agentic drafting.
+3.  **Step 3**: Passes the draft to `/send-email` for delivery.
+
+### 4. The Delivery Mechanism (`/send-email`)
 
 The final step bridges the CLI and the desktop environment.
 
@@ -44,18 +52,20 @@ The final step bridges the CLI and the desktop environment.
 
 ```
 .claude/skills/
-├── lesson-summary/           # Orchestrator
-│   ├── SKILL.md              # Skill definition & arguments
+├── auto-lesson/            # Orchestrator (The main command)
+│   └── SKILL.md            # Chains lesson-summary -> lesson -> send-email
+├── lesson-summary/         # Video Processing
+│   ├── SKILL.md            # Skill definition & arguments
 │   └── scripts/
 │       └── lesson_summary.py # Python logic for ffmpeg + whisper
-├── lesson/                   # Writer
-│   └── SKILL.md              # Prompt engineering (The "Brain")
-├── send-email/               # Delivery
-│   ├── SKILL.md              # Skill definition
+├── lesson/                 # Writer (Agentic)
+│   └── SKILL.md            # Prompt engineering (The "Brain")
+├── send-email/             # Delivery
+│   ├── SKILL.md            # Skill definition
 │   └── scripts/
 │       └── send_email.py     # Python + Applescript bridge
-└── transcribe-audio/         # Utility
-    ├── SKILL.md              # Standalone transcription tool
+└── transcribe-audio/       # Utility
+    ├── SKILL.md            # Standalone transcription tool
     └── scripts/
         └── faster_whisper_test.py # Core transcription logic
 
